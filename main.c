@@ -8,6 +8,7 @@ void *fnC()
     {   
         c++;
     }   
+  return 0;
 }
 
 
@@ -25,7 +26,7 @@ void *pthreadMutexTest()
 	
     }   
 
-
+	return 0;
 }
 
 int runTest(int testID)
@@ -48,7 +49,7 @@ if (testID == 0 || testID == 1 ) /*Pthread Mutex*/
 	for(i=0;i<numThreads;i++)
 	{
 	
-	 if( rt=(pthread_create( threads+i, NULL, &pthreadMutexTest, NULL)) )
+	 if( (rt = pthread_create( threads+i, NULL, &pthreadMutexTest, NULL)) )
 	{
 		printf("Thread creation failed: %d\n", rt);
 		return -1;	
@@ -85,10 +86,11 @@ else if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 
 int testAndSetExample()
 {
-volatile long test = 0; //Test is set to 0
-printf("Test before atomic OP:%d\n",test);
-tas(&test);
-printf("Test after atomic OP:%d\n",test);
+	volatile long test = 0; //Test is set to 0
+	printf("Test before atomic OP:%ld\n",test);
+	tas((unsigned long*)&test);
+	printf("Test after atomic OP:%ld\n",test);
+return 0;
 }
 
 int processInput(int argc, char *argv[])

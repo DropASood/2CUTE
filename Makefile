@@ -3,7 +3,7 @@ CC=gcc $(CFLAGS)
 OBJECTS=sync.o main.o
 
 all:
-	clang -Wall -lpthread main.c sync.c -o mylocks;
+	clang -Wall -lpthread main.c sync.c -o mylocks
 
 mylocks: $(OBJECTS) 
 	$(CC) $(OBJECTS) -o mylocks

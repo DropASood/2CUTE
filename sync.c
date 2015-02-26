@@ -52,7 +52,7 @@ int my_spinlock_lockTAS(my_spinlock_t *lock)
 	if(lock == NULL){ //lock does not exist
 		return -1;
 	}
-	while(tas( &(lock->locked) ) == 1){ //test and set while lock is locked
+	while(tas( (unsigned long*)&(lock->locked) ) == 1){ //test and set while lock is locked
 		//spin...
 	}
 
@@ -71,7 +71,7 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 		while(lock->locked == 1){ //test while lock is locked
 		}
 		
-		if(tas( &(lock->locked) == 0 )){ //test and set if it appears unlocked
+		if(tas( (unsigned long*)&(lock->locked)) == 0 ){ //test and set if it appears unlocked
 			return 0;
 		}
 
@@ -82,6 +82,7 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 
 int my_spinlock_trylock(my_spinlock_t *lock)
 {
+	return 0;
 	
 }
 
