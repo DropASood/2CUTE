@@ -97,10 +97,17 @@ int processInput(int argc, char *argv[])
 /*testid: 0=all, 1=pthreadMutex, 2=pthreadSpinlock, 3=mySpinLockTAS, 4=mySpinLockTTAS, 5=myMutexTAS, 6=myMutexTTAS*/
 	/*You must write how to parse input from the command line here, your software should default to the values given below if no input is given*/
 	
-	numThreads=4;
-	numItterations=1000000;
-	testID=0;
-	
+	if(argc ==1){
+		numThreads=4;
+		numItterations=1000000;
+		testID=0;
+	}
+
+	else if( argc > 1){
+		numThreads = atoi(argv[1]);
+		numItterations = atoi(argv[2]);
+		testID = atoi(argv[3]);
+	}
 	
 	
 	return 0;

@@ -8,9 +8,13 @@
 #define _my_SYNC_H_
 
 #include "atomic_ops.h"
+#include <pthread.h>
+#include <stdlib.h>
+
 
 struct my_mutex_struct {
-  /* FILL ME IN! */
+  int locked; //locked = 1, unlocked = 0
+
 };
 
 
@@ -32,7 +36,8 @@ int my_mutex_trylock(my_mutex_t *mutex);
 /*Spinlock Starts here*/
 
 struct my_spinlock_struct {
-  /* FILL ME IN! */
+  int locked; //locked = 1, unlocked = 0
+  pthread_t tid; //which thread has a hold of the lock
 };
 
 typedef struct my_spinlock_struct my_spinlock_t;
