@@ -109,7 +109,7 @@ int my_mutex_init(my_mutex_t *mutex)
 	}
 
 	mutex->minDelay = 1;
-	mutex->maxDelay = 100;
+	mutex->maxDelay = 256;
 	mutex->lock_state = 0;
 
 	return 0;
@@ -142,17 +142,20 @@ int my_mutex_lockTAS(my_mutex_t *mutex)
 	if(mutex == NULL){ //lock does not exist
 		return -1;
 	}
-	//mutex->minDelay =1;
-	printf("mutex delay: %i\n", mutex->minDelay );
-	int delay = mutex->minDelay;
+	int minDelay = 1;
+	int maxDelay = 256;
+	int delay = minDelay;
+	//printf("mutex lockstate: %i \n", mutex->lock_state);
 	
-	while(my_mutex_trylock(mutex) == -1){
-		usleep(rand());
+	while(1){
 
-		if (delay < mutex->maxDelay){
+		if(my_mutex_trylock(mutex) == 0){
+			printf("Got the lock\n");
+			return 0;
+		}
+		usleep(rand()%delay);
+		if (delay < maxDelay){
 			delay = delay*2;
-			printf("delay: %i\n", delay );
-
 		}
 	}
 
@@ -187,20 +190,20 @@ int my_mutex_lockTTAS(my_mutex_t *mutex)
 
 int my_mutex_trylock(my_mutex_t *mutex)
 {
-
 	if(mutex == NULL){ //lock does not exist
 		return -1;
 	}
-	
 	if(tas((volatile unsigned long*)&(mutex->lock_state)) == 0 ){
+	printf("state: %i\n",mutex->lock_state );
 		return 0;
 	}
 
 	else if (tas( (volatile unsigned long*)&(mutex->lock_state)) == 1){
+		//printf("Failed to get lock\n");
 		return -1;
 	}
-
 	return -1;
+
 
 }
 
