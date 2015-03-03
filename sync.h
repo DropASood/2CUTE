@@ -11,11 +11,12 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 
 struct my_mutex_struct {
-  int locked; //locked = 1, unlocked = 0
-  int minDelay;
+  int lock_state; 	//locked = 1, unlocked = 0
+  int minDelay; //
   int maxDelay;
 };
 
@@ -38,7 +39,7 @@ int my_mutex_trylock(my_mutex_t *mutex);
 /*Spinlock Starts here*/
 
 struct my_spinlock_struct {
-  int locked; //locked = 1, unlocked = 0
+  int lock_state; //locked = 1, unlocked = 0
   pthread_t tid; //which thread has a hold of the lock
 
 };

@@ -12,7 +12,6 @@
 
 #include "sync.h"
 
-
 /*
  * Spinlock routines
  */
@@ -23,7 +22,7 @@ int my_spinlock_init(my_spinlock_t *lock)
 		return -1;
 	}
 
-	lock->locked = 0; 
+	lock->lock_state = 0; 
 	return 0;
 }
 
@@ -43,7 +42,7 @@ int my_spinlock_unlock(my_spinlock_t *lock)
 		return -1;
 	}
 
-	lock->locked = 0;
+	lock->lock_state = 0;
 	return 0;
 }
 
@@ -52,7 +51,7 @@ int my_spinlock_lockTAS(my_spinlock_t *lock)
 	if(lock == NULL){ //lock does not exist
 		return -1;
 	}
-	while(tas( (unsigned long*)&(lock->locked) ) == 1){ //test and set while lock is locked
+	while( my_spinlock_trylock(lock) == -1){ //test and set while lock is lock_state
 		//spin...
 	}
 
@@ -68,10 +67,10 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 
 	while(1){
 		
-		while(lock->locked == 1){ //test while lock is locked
+		while(lock->lock_state == 1){ //test while lock is lock_state
 		}
 		
-		if(tas( (unsigned long*)&(lock->locked)) == 0 ){ //test and set if it appears unlocked
+		if(my_spinlock_trylock(lock)== 0 ){ //test and set if it appears unlock_state
 			return 0;
 		}
 
@@ -86,9 +85,15 @@ int my_spinlock_trylock(my_spinlock_t *lock)
 		return -1;
 	}
 	
-	if(tas( (unsigned long*)&(lock->locked)) == 0 ){
-
+	if(tas( (volatile unsigned long*)&(lock->lock_state)) == 0 ){
+		return 0;
 	}
+
+	else if (tas( (volatile unsigned long*)&(lock->lock_state)) == 1){
+		return -1;
+	}
+
+	return -1;
 }
 
 
@@ -98,6 +103,15 @@ int my_spinlock_trylock(my_spinlock_t *lock)
 
 int my_mutex_init(my_mutex_t *mutex)
 {
+
+	if(mutex == NULL ){
+		return -1;
+	}
+
+	mutex->minDelay = 1;
+	mutex->maxDelay = 100;
+	mutex->lock_state = 0;
+
 	return 0;
 }
 
@@ -117,7 +131,8 @@ int my_mutex_unlock(my_mutex_t *mutex)
 		return -1;
 	}
 
-	mutex->locked=0;
+	mutex->lock_state = 0;
+
 	return 0;
 
 }
@@ -127,19 +142,21 @@ int my_mutex_lockTAS(my_mutex_t *mutex)
 	if(mutex == NULL){ //lock does not exist
 		return -1;
 	}
-
+	//mutex->minDelay =1;
+	printf("mutex delay: %i\n", mutex->minDelay );
 	int delay = mutex->minDelay;
 	
-	while (1){
-		
-		if (tas( (unsigned long*)&(mutex->locked) ) == 0){
-			return 0;
-		}
-		sleep(rand()%delay);
+	while(my_mutex_trylock(mutex) == -1){
+		usleep(rand());
+
 		if (delay < mutex->maxDelay){
 			delay = delay*2;
+			printf("delay: %i\n", delay );
+
 		}
 	}
+
+	return 0;
 }
 
 
@@ -153,13 +170,14 @@ int my_mutex_lockTTAS(my_mutex_t *mutex)
 	
 	while (1){
 		
-		while(mutex->locked == 1){ //test while lock is locked
+		while(mutex->lock_state == 1){ //test while lock is locked
+			
 		}
 		
-		if (tas( (unsigned long*)&(mutex->locked) ) == 0){
+		if (my_mutex_trylock(mutex) == 0){
 			return 0;
 		}
-		sleep(rand()%delay);
+		usleep(rand()%delay);
 		if (delay < mutex->maxDelay){
 			delay = delay*2;
 		}
@@ -169,7 +187,20 @@ int my_mutex_lockTTAS(my_mutex_t *mutex)
 
 int my_mutex_trylock(my_mutex_t *mutex)
 {
-	return 0;
+
+	if(mutex == NULL){ //lock does not exist
+		return -1;
+	}
+	
+	if(tas((volatile unsigned long*)&(mutex->lock_state)) == 0 ){
+		return 0;
+	}
+
+	else if (tas( (volatile unsigned long*)&(mutex->lock_state)) == 1){
+		return -1;
+	}
+
+	return -1;
 
 }
 
