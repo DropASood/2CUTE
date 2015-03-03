@@ -82,8 +82,13 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 
 int my_spinlock_trylock(my_spinlock_t *lock)
 {
-	return 0;
+	if(lock == NULL){ //lock does not exist
+		return -1;
+	}
 	
+	if(tas( (unsigned long*)&(lock->locked)) == 0 ){
+
+	}
 }
 
 
@@ -98,26 +103,67 @@ int my_mutex_init(my_mutex_t *mutex)
 
 int my_mutex_destroy(my_mutex_t *mutex)
 {
-	return 0;
+	if(mutex == NULL){ //lock does not exist
+		return -1;
+	}
 
+	free(mutex);
+	return 0;
 }
 
 int my_mutex_unlock(my_mutex_t *mutex)
 {
+	if(mutex == NULL){
+		return -1;
+	}
+
+	mutex->locked=0;
 	return 0;
 
 }
 
 int my_mutex_lockTAS(my_mutex_t *mutex)
-{
-	return 0;
+{	
+	if(mutex == NULL){ //lock does not exist
+		return -1;
+	}
 
+	int delay = mutex->minDelay;
+	
+	while (1){
+		
+		if (tas( (unsigned long*)&(mutex->locked) ) == 0){
+			return 0;
+		}
+		sleep(rand()%delay);
+		if (delay < mutex->maxDelay){
+			delay = delay*2;
+		}
+	}
 }
 
 
 int my_mutex_lockTTAS(my_mutex_t *mutex)
 {
-	return 0;
+	if(mutex == NULL){ //lock does not exist
+		return -1;
+	}
+
+	int delay = mutex->minDelay;
+	
+	while (1){
+		
+		while(mutex->locked == 1){ //test while lock is locked
+		}
+		
+		if (tas( (unsigned long*)&(mutex->locked) ) == 0){
+			return 0;
+		}
+		sleep(rand()%delay);
+		if (delay < mutex->maxDelay){
+			delay = delay*2;
+		}
+	}
 
 }
 

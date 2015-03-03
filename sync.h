@@ -10,11 +10,13 @@
 #include "atomic_ops.h"
 #include <pthread.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 
 struct my_mutex_struct {
   int locked; //locked = 1, unlocked = 0
-
+  int minDelay;
+  int maxDelay;
 };
 
 
@@ -38,6 +40,7 @@ int my_mutex_trylock(my_mutex_t *mutex);
 struct my_spinlock_struct {
   int locked; //locked = 1, unlocked = 0
   pthread_t tid; //which thread has a hold of the lock
+
 };
 
 typedef struct my_spinlock_struct my_spinlock_t;

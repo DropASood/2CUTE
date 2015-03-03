@@ -79,8 +79,7 @@ else if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 /* mySpinlock TAS goes here*/
 }
 
-/*....you must implement the other tests....*/
-
++
 	return 0;
 }
 
