@@ -20,8 +20,8 @@ pthread_mutex_t count_mutex;
 pthread_spinlock_t count_spinlock;
 
 //create own locks
-my_spinlock_t my_spinlock;
-my_mutex_t my_mutex;
+my_spinlock_t *my_spinlock;
+my_mutex_t *my_mutex;
 
 
 void *pthreadMutexTest()
@@ -47,6 +47,7 @@ void *pthreadSpinlockTest()
     for(i=0;i<numItterations;i++)
     { 
 	pthread_spin_lock(&count_spinlock);
+
 	c++;
 	pthread_spin_unlock(&count_spinlock);    
 	
@@ -62,14 +63,15 @@ void *mySpinlockTASTest()
 	//printf("lock state: %i\n", my_spinlock.lock_state);
     for(i=0;i<numItterations;i++)
     { 
-		my_spinlock_lockTAS(&my_spinlock);
+		my_spinlock_lockTAS(my_spinlock);
 		//printf("lock state inside: %i\n", my_spinlock.lock_state);
 		//printf("lock state: %i\n", my_spinlock.lock_state);
 		printf("tid: %lu \n" ,pthread_self());
 		c++;
-		my_spinlock_unlock(&my_spinlock);
+		my_spinlock_unlock(my_spinlock);
 		//printf("outisde lock state: %i\n", my_spinlock.lock_state);
 		//printf("UNLOCKED******************\n");    
+
     }   
 
 	return 0;
@@ -80,10 +82,11 @@ void *mySpinlockTTASTest()
     int i;
     for(i=0;i<numItterations;i++)
     { 
-	my_spinlock_lockTTAS(&my_spinlock);
+
+	my_spinlock_lockTTAS(my_spinlock);
 	printf("tid: %lu \n" ,pthread_self());
 	c++;
-	my_spinlock_unlock(&my_spinlock);    
+	my_spinlock_unlock(my_spinlock);    
 	
     }   
 
@@ -94,15 +97,16 @@ void *mySpinlockTTASTest()
 
 void *myMutexlockTASTest()
 {
-
+	printf("Testing/\n");
     int i;
     for(i=0;i<numItterations;i++)
     { 
-	my_mutex_lockTAS(&my_mutex);
+
+	my_mutex_lockTAS(my_mutex);
  //    printf("Heyyyyyyyyyy\n");
 	// printf("tid: %lu \n" ,pthread_self());
 	c++;
-	my_mutex_unlock(&my_mutex);    
+	my_mutex_unlock(my_mutex);    
 	
     }   
 
@@ -115,9 +119,9 @@ void *myMutexlockTTASTest()
     int i;
     for(i=0;i<numItterations;i++)
     { 
-	my_mutex_lockTTAS(&my_mutex);
+	my_mutex_lockTTAS(my_mutex);
 	c++;
-	my_mutex_unlock(&my_mutex);    
+	my_mutex_unlock(my_mutex);    
 	
     }   
 
@@ -166,16 +170,17 @@ if (testID == 0 || testID == 1 ) /*Pthread Mutex*/
 
 if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 {
-	pthread_t *threads2 = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
+	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
 	int i;
 	int rt;
 	c=0;
 	pthread_spin_unlock(&count_spinlock);
 	clock_gettime(CLOCK_MONOTONIC, &start);
+
 	for(i=0;i<numThreads;i++)
 	{
 	
-	 if( (rt = pthread_create( threads2+i, NULL, &pthreadSpinlockTest, NULL)) )
+	 if( (rt = pthread_create( threads+i, NULL, &pthreadSpinlockTest, NULL)) )
 	{
 		printf("Thread creation failed: %d\n", rt);
 		return -1;	
@@ -185,14 +190,14 @@ if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 	
 	for(i=0;i<numThreads;i++) //Wait for all threads to finish
 	{
-		 pthread_join(threads2[i], NULL);
+		 pthread_join(threads[i], NULL);
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
 	printf("Threaded Run Pthread (Spin) Total Count: %d\n", c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Spin time(ms): %llu\n",result/1000000);
-	free(threads2);
+	free(threads);
 
 }
 
@@ -268,6 +273,7 @@ if(testID == 0 || testID == 5) /*MySpinlockTTAS*/
 	int i;
 	int rt;
 	c=0;
+
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for(i=0;i<numThreads;i++)
 	{
@@ -364,20 +370,21 @@ int processInput(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	my_spinlock_init(&my_spinlock);
-	my_mutex_init(&my_mutex);
+	my_spinlock = (my_spinlock_t*)malloc(sizeof(my_spinlock_t));
+	my_mutex = (my_mutex_t*)malloc(sizeof(my_mutex_t));
 
-
-	printf("Usage of: %s -t #threads -i #itterations -d testid\n", argv[0]);
-	printf("testid: 0=all, 1=pthreadMutex, 2=pthreadSpinlock, 3=mySpinLockTAS, 4=mySpinLockTTAS, 5=myMutexTAS, 6=myMutexTTAS\n");	
+	my_spinlock_init(my_spinlock);
+	my_mutex_init(my_mutex);
+	//printf("Usage of: %s -t #threads -i #itterations -d testid\n", argv[0]);
+	//printf("testid: 0=all, 1=pthreadMutex, 2=pthreadSpinlock, 3=mySpinLockTAS, 4=mySpinLockTTAS, 5=myMutexTAS, 6=myMutexTTAS\n");	
 	
 	//testAndSetExample(); //Uncomment this line to see how to use TAS
 	processInput(argc,argv);
 	runTest(testID);
 
 
-	//my_spinlock_destroy(my_spinlock);
-	//my_mutex_destroy(my_mutex);
+	my_spinlock_destroy(my_spinlock);
+	my_mutex_destroy(my_mutex);
 
 	return 0;
 
