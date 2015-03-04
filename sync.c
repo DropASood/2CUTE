@@ -70,7 +70,7 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 		while(lock->lock_state == 1){ //test while lock is lock_state
 		}
 		
-		if( tas( (volatile unsigned long*)&(lock->lock_state)) == 0){ //test and set if it appears unlock_state
+		if(!(tas((volatile unsigned long*)&lock->lock_state) == 1)){ //test and set if it appears unlock_state
 			return 0;
 		}
 
@@ -141,57 +141,30 @@ int my_mutex_unlock(my_mutex_t *mutex)
 int my_mutex_lockTAS(my_mutex_t *mutex)
 {	
 
-	double time;
-	double backoff = 0;
-
-	// if(mutex == NULL){ //lock does not exist
-	// 	return -1;
-	// }
-
-	//int delay = mutex->minDelay;
-	while(1){
-		
-		// if (tas((volatile unsigned long*)&(mutex->lock_state)) == 0 ){
-		// 	return 0;
-		// }
-		// printf("hiiiiiiiiiiii\n");
-		// while (tas((volatile unsigned long*)&mutex->lock_state)==0){
-		// 	// printf("looooooppppppp\n");
-		// }
-		// return 0;
-
-		while (tas((volatile unsigned long*)&mutex->lock_state)==1){};
-		return 0;
-
-		// printf("HOW you doinnn?\n");
-		// time = fmin((rand()/(double)RAND_MAX)*pow(2, backoff), mutex->maxDelay);
-		// printf("random time %f\n", (rand()/(double)RAND_MAX)*pow(2, backoff));
-		// printf("Sleep time: %f\n", time);
-		// backoff++;
-		// usleep(time);	
-	}
-/*	if(mutex == NULL){ //lock does not exist
+	if(mutex == NULL){ //lock does not exist
 		return -1;
 	}
 	int minDelay = 1;
-	int maxDelay = 256;
+	int maxDelay = 100;
 	int delay = minDelay;
 	//printf("mutex lockstate: %i \n", mutex->lock_state);
 	
 	while(1){
 
-		if(my_mutex_trylock(mutex) == 0){
-			printf("Got the lock\n");
-			return 0;
+		while(tas((volatile unsigned long*)&mutex->lock_state) == 1){
+			usleep(rand()%delay);
+			if (delay < maxDelay){
+				delay = delay*2;
+			}
 		}
-		usleep(rand()%delay);
-		if (delay < maxDelay){
-			delay = delay*2;
-		}
+
+		return 0;
+		//printf("Lock state: %i\n", mutex->lock_state);
+		//printf("Going to sleep now\n");
 
 	}
 	
-*/
+
 	
 }
 
@@ -201,25 +174,23 @@ int my_mutex_lockTTAS(my_mutex_t *mutex)
 	if(mutex == NULL){ //lock does not exist
 		return -1;
 	}
+	int minDelay = 1;
+	int maxDelay = 200;
+	int delay = minDelay;
+	while (1){	
 
-	int delay = mutex->minDelay;
-	printf("This is %i\n", delay);
-	while (1){
-		
-		while(tas((volatile unsigned long*)&(mutex->lock_state)) == 1){ //test while lock is locked
-			
+		while(mutex->lock_state == 1){ //test while lock is locked
+			usleep(rand()%delay);
+			if (delay < maxDelay){
+				delay = delay*2;
+			}
 		}
 		
-		printf("This is %i\n", delay);
-
-		if (tas((volatile unsigned long*)&(mutex->lock_state)) == 0 ){
+		if (!(tas((volatile unsigned long*)&mutex->lock_state) == 1) ){
 			return 0;
 		}
+
 		
-		sleep(rand()%delay);
-		if (delay < mutex->maxDelay){
-			delay = delay*2;
-		}
 	}
 
 }

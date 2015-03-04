@@ -66,7 +66,7 @@ void *mySpinlockTASTest()
 		my_spinlock_lockTAS(my_spinlock);
 		//printf("lock state inside: %i\n", my_spinlock.lock_state);
 		//printf("lock state: %i\n", my_spinlock.lock_state);
-		printf("tid: %lu \n" ,pthread_self());
+		//printf("tid: %lu \n" ,pthread_self());
 		c++;
 		my_spinlock_unlock(my_spinlock);
 		//printf("outisde lock state: %i\n", my_spinlock.lock_state);
@@ -84,7 +84,7 @@ void *mySpinlockTTASTest()
     { 
 
 	my_spinlock_lockTTAS(my_spinlock);
-	printf("tid: %lu \n" ,pthread_self());
+	//printf("tid: %lu \n" ,pthread_self());
 	c++;
 	my_spinlock_unlock(my_spinlock);    
 	
@@ -97,14 +97,10 @@ void *mySpinlockTTASTest()
 
 void *myMutexlockTASTest()
 {
-	printf("Testing/\n");
     int i;
     for(i=0;i<numItterations;i++)
     { 
-
 	my_mutex_lockTAS(my_mutex);
- //    printf("Heyyyyyyyyyy\n");
-	// printf("tid: %lu \n" ,pthread_self());
 	c++;
 	my_mutex_unlock(my_mutex);    
 	
