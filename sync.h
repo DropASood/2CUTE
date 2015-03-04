@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <math.h>
 
 
 struct my_mutex_struct {

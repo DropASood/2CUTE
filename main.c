@@ -1,5 +1,6 @@
 #include "main.h"
 
+
 struct timespec start;
 struct timespec stop;
 unsigned long long result; //64 bit integer
@@ -46,7 +47,6 @@ void *pthreadSpinlockTest()
     for(i=0;i<numItterations;i++)
     { 
 	pthread_spin_lock(&count_spinlock);
-	printf("Testing Spinlock\n");
 	c++;
 	pthread_spin_unlock(&count_spinlock);    
 	
@@ -59,12 +59,17 @@ void *mySpinlockTASTest()
 {
 
     int i;
+	//printf("lock state: %i\n", my_spinlock.lock_state);
     for(i=0;i<numItterations;i++)
     { 
-	my_spinlock_lockTAS(&my_spinlock);
-	c++;
-	my_spinlock_unlock(&my_spinlock);    
-	
+		my_spinlock_lockTAS(&my_spinlock);
+		//printf("lock state inside: %i\n", my_spinlock.lock_state);
+		//printf("lock state: %i\n", my_spinlock.lock_state);
+		printf("tid: %lu \n" ,pthread_self());
+		c++;
+		my_spinlock_unlock(&my_spinlock);
+		//printf("outisde lock state: %i\n", my_spinlock.lock_state);
+		//printf("UNLOCKED******************\n");    
     }   
 
 	return 0;
@@ -72,11 +77,11 @@ void *mySpinlockTASTest()
 
 void *mySpinlockTTASTest()
 {
-
     int i;
     for(i=0;i<numItterations;i++)
     { 
 	my_spinlock_lockTTAS(&my_spinlock);
+	printf("tid: %lu \n" ,pthread_self());
 	c++;
 	my_spinlock_unlock(&my_spinlock);    
 	
@@ -94,6 +99,8 @@ void *myMutexlockTASTest()
     for(i=0;i<numItterations;i++)
     { 
 	my_mutex_lockTAS(&my_mutex);
+ //    printf("Heyyyyyyyyyy\n");
+	// printf("tid: %lu \n" ,pthread_self());
 	c++;
 	my_mutex_unlock(&my_mutex);    
 	
@@ -163,6 +170,7 @@ if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 	int i;
 	int rt;
 	c=0;
+	pthread_spin_unlock(&count_spinlock);
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for(i=0;i<numThreads;i++)
 	{
