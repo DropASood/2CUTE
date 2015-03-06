@@ -8,7 +8,7 @@
     sync.c
 =============*/
 
-#define _REENTRANT
+#define _REENTRANT 1000;
 
 #include "sync.h"
 
@@ -22,7 +22,9 @@ int my_spinlock_init(my_spinlock_t *lock)
 		return -1;
 	}
 
-	lock->lock_state = 0; 
+	lock->lock_state = 0;
+	lock->count = 0;
+	lock->owner = 0; 
 	return 0;
 }
 
@@ -43,6 +45,10 @@ int my_spinlock_unlock(my_spinlock_t *lock)
 	}
 
 	lock->lock_state = 0;
+	lock->count--;
+	if(lock->count == 0){
+		lock->owner = 0;
+	}
 	return 0;
 }
 
@@ -51,9 +57,15 @@ int my_spinlock_lockTAS(my_spinlock_t *lock)
 	if(lock == NULL){ //lock does not exist
 		return -1;
 	}
-	while( tas( (volatile unsigned long*)&(lock->lock_state)) == 1) { //test and set while lock is locked
+
+	int wait = _REENTRANT;
+	while( tas( (volatile unsigned long*)&(lock->lock_state)) == 1 && wait > 0) { //test and set while lock is locked
+		wait --;
 		//spin...
 	}
+
+	lock->count++;
+	lock->owner = pthread_self();
 
 	return 0;
 }

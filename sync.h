@@ -41,8 +41,9 @@ int my_mutex_trylock(my_mutex_t *mutex);
 /*Spinlock Starts here*/
 
 struct my_spinlock_struct {
-  int lock_state; //locked = 1, unlocked = 0
-  pthread_t tid; //which thread has a hold of the lock
+  int lock_state; 		//locked = 1, unlocked = 0
+  unsigned int count; 	//count of how many times it has been locked
+  pthread_t owner; 		//which thread has a hold of the lock
 
 };
 
